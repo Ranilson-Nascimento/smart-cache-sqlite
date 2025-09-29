@@ -374,7 +374,11 @@ cache.<span class="function">invalidateAll</span>();
 
     <div class="section">
       <h2>Teste Interativo</h2>
-      <p>Experimente o smart-cache-sqlite funcionando em tempo real. Clique nos botoes abaixo para executar queries e ver como o cache se comporta:</p>
+      <p>Experimente o smart-cache-sqlite funcionando em tempo real. Esta é uma demonstração simulada que mostra como o cache se comporta com diferentes estratégias:</p>
+
+      <div class="note">
+        <p><strong>Nota:</strong> Esta demo usa dados simulados pois está hospedada no GitHub Pages (apenas arquivos estáticos). Para uma experiência completa com banco de dados real, execute localmente com <code>npm run demo</code>.</p>
+      </div>
 
       <div style="display: flex; gap: 15px; align-items: center; margin: 20px 0; flex-wrap: wrap;">
         <select id="strategy" style="padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
@@ -425,7 +429,84 @@ cache.<span class="function">invalidateAll</span>();
   </div>
 
   <script>
+    // Dados simulados para a demo (já que estamos no GitHub Pages sem servidor)
+    let mockClientes = [
+      { id: 1, nome: 'João Silva', cidade: 'Marília' },
+      { id: 2, nome: 'Maria Santos', cidade: 'Marília' },
+      { id: 3, nome: 'Pedro Oliveira', cidade: 'Marília' },
+      { id: 4, nome: 'Ana Costa', cidade: 'São Paulo' },
+      { id: 5, nome: 'Carlos Lima', cidade: 'Rio de Janeiro' }
+    ];
+
+    let mockStats = {
+      totalItems: 0,
+      hitRate: 0,
+      totalQueries: 0
+    };
+
+    let queryCount = 0;
+    let cacheHits = 0;
+    let nextId = 6;
+
     let logEntries = [];
+
+    // Função mock para simular busca de clientes
+    async function mockFetchClientes(cidade, strategy) {
+      queryCount++;
+      const start = Date.now();
+
+      // Simular delay de rede/banco
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 200 + 100));
+
+      const clientesFiltrados = mockClientes.filter(c => c.cidade === cidade);
+
+      // Simular comportamento do cache baseado na estratégia
+      let fromCache = false;
+      let revalidated = false;
+
+      if (strategy === 'cache-first') {
+        fromCache = Math.random() > 0.3; // 70% chance de cache hit
+        if (fromCache) cacheHits++;
+      } else if (strategy === 'network-first') {
+        fromCache = false; // Sempre busca no banco
+      } else if (strategy === 'stale-while-revalidate') {
+        fromCache = Math.random() > 0.2; // 80% chance de cache hit
+        if (fromCache) {
+          revalidated = Math.random() > 0.5; // 50% chance de revalidação
+        }
+        if (fromCache) cacheHits++;
+      }
+
+      mockStats.totalQueries = queryCount;
+      mockStats.hitRate = cacheHits / queryCount;
+      mockStats.totalItems = Math.floor(Math.random() * 50) + 10; // Simular itens no cache
+
+      return {
+        rows: clientesFiltrados,
+        fromCache,
+        revalidated
+      };
+    }
+
+    // Função mock para inserir cliente
+    async function mockInsertCliente(nome, cidade) {
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 150 + 50));
+
+      const novoCliente = { id: nextId++, nome, cidade };
+      mockClientes.push(novoCliente);
+
+      // Simular invalidação de cache
+      cacheHits = Math.floor(cacheHits * 0.7); // Reduzir hits após invalidação
+
+      return { id: novoCliente.id };
+    }
+
+    // Função mock para limpar cache
+    async function mockInvalidateCache() {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      cacheHits = 0;
+      mockStats.totalItems = 0;
+    }
 
     async function buscarClientes() {
       const strategy = document.getElementById('strategy').value;
@@ -437,8 +518,7 @@ cache.<span class="function">invalidateAll</span>();
 
       try {
         const start = Date.now();
-        const response = await fetch(`/api/clientes?cidade=Marília&strategy=${strategy}`);
-        const data = await response.json();
+        const data = await mockFetchClientes('Marília', strategy);
         const duration = Date.now() - start;
 
         let statusText = '';
@@ -486,12 +566,7 @@ cache.<span class="function">invalidateAll</span>();
       if (!nome || !cidade) return;
 
       try {
-        const response = await fetch('/api/clientes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, cidade })
-        });
-        const data = await response.json();
+        const data = await mockInsertCliente(nome, cidade);
 
         document.getElementById('resultado').innerHTML = '<div style="color: #059669;"><strong>Sucesso:</strong> Cliente inserido com ID ' + data.id + '</div>';
         document.getElementById('resultado').style.display = 'block';
@@ -505,7 +580,7 @@ cache.<span class="function">invalidateAll</span>();
 
     async function limparCache() {
       try {
-        await fetch('/api/invalidate', { method: 'POST' });
+        await mockInvalidateCache();
         addLog('Cache limpo manualmente');
         document.getElementById('resultado').innerHTML = '<div style="color: #059669;"><strong>Sucesso:</strong> Cache limpo</div>';
         document.getElementById('resultado').style.display = 'block';
@@ -517,12 +592,10 @@ cache.<span class="function">invalidateAll</span>();
 
     async function atualizarStats() {
       try {
-        const response = await fetch('/api/stats');
-        const stats = await response.json();
-
-        document.getElementById('cacheItems').textContent = stats.totalItems || 0;
-        document.getElementById('hitRate').textContent = stats.hitRate ? Math.round(stats.hitRate * 100) + '%' : '0%';
-        document.getElementById('totalQueries').textContent = stats.totalQueries || 0;
+        // Usar dados mockados em vez de fetch
+        document.getElementById('cacheItems').textContent = mockStats.totalItems || 0;
+        document.getElementById('hitRate').textContent = mockStats.hitRate ? Math.round(mockStats.hitRate * 100) + '%' : '0%';
+        document.getElementById('totalQueries').textContent = mockStats.totalQueries || 0;
       } catch (error) {
         console.error('Erro ao atualizar stats:', error);
       }
