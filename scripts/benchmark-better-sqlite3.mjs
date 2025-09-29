@@ -36,3 +36,5 @@ console.log(JSON.stringify({
   cached_ms: Math.round(t3 - t2),
   speedup: ((t1 - t0) / (t3 - t2)).toFixed(2) + 'x'
 }, null, 2));
+
+process.exit(0);
