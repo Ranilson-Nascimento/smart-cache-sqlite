@@ -3,52 +3,69 @@
 [![npm version](https://img.shields.io/npm/v/smart-cache-sqlite.svg)](https://www.npmjs.com/package/smart-cache-sqlite)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://img.shields.io/github/actions/workflow/status/Ranilson-Nascimento/smart-cache-sqlite/ci.yml)](https://github.com/Ranilson-Nascimento/smart-cache-sqlite/actions)
-[![Cobertura](./.github/badges/coverage.svg)](https://github.com/Ranilson-Nascimento/smart-cache-sqlite)
+[![Coverage](./.github/badges/coverage.svg)](https://github.com/Ranilson-Nascimento/smart-cache-sqlite)
 
-> **EN** • [🇧🇷 PT-BR](#pt-br)
+> **EN** • [PT-BR](#pt-br)
 
-**Camada de cache inteligente para SQLite** com TTL, LRU, invalidação automática por tabela e estratégias modernas: `cache-first`, `network-first`, `stale-while-revalidate`.
+An intelligent caching layer for SQLite with TTL, LRU, table-based invalidation, and modern strategies: `cache-first`, `network-first`, `stale-while-revalidate`.
 
-- ⚡ **Alta performance** - Funciona com `better-sqlite3` (síncrono) e `sqlite3` (assíncrono)
-- 🎯 **3 Estratégias** - Cache-First, Network-First e Stale-While-Revalidate
-- 🔄 **Invalidação automática** - Via `PRAGMA data_version` + triggers opcionais por tabela
-- 📊 **Telemetria completa** - Estatísticas de hit rate, performance e uso de memória
-- 📱 **React Native** - Adapter pronto para Expo e outras plataformas
-- 🧪 **Testado** - Cobertura completa + CI/CD automatizado
+- High performance - Works with `better-sqlite3` (sync) and `sqlite3` (async)
+- 3 Strategies - Cache-First, Network-First, and Stale-While-Revalidate
+- Automatic invalidation - Via `PRAGMA data_version` + optional table triggers
+- Complete telemetry - Hit rate, performance, and memory usage statistics
+- React Native - Ready adapter for Expo and other platforms
+- Well tested - Full coverage + automated CI/CD
 
-## 🚀 Demonstração Interativa
+## Interactive Demo
 
-[![Demo Online](https://img.shields.io/badge/🎮%20Demo%20Interativo-abrir%20demo-4f46e5)](https://ranilson-nascimento.github.io/smart-cache-sqlite/)
+[![Demo Online](https://img.shields.io/badge/Demo-Interactive-4f46e5)](https://ranilson-nascimento.github.io/smart-cache-sqlite/)
 
-**Teste o cache funcionando em tempo real!** Execute queries, veja estatísticas ao vivo e experimente as diferentes estratégias:
+Test the cache working in real time! Execute queries, see live statistics, and try different strategies:
 
 ```bash
 npm install
 npm run demo
-# 👉 http://localhost:3000 (local)
-# 🌐 https://ranilson-nascimento.github.io/smart-cache-sqlite/ (online)
+# -> http://localhost:3000 (local)
+# -> https://ranilson-nascimento.github.io/smart-cache-sqlite/ (online)
 ```
 
-## 💝 Apoie o Projeto
+## Support the Project
 
-Se o **smart-cache-sqlite** está ajudando seu projeto, considere apoiar o desenvolvimento:
+If smart-cache-sqlite is helping your project, consider supporting development:
 
 [![GitHub Sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#white)](https://github.com/sponsors/Ranilson-Nascimento)
-[![Buy me a coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/ranilson)
 
-## 📦 Instalação
+## Installation
 
 ```bash
-# Para Node.js (recomendado)
+# For Node.js (recommended)
 npm install smart-cache-sqlite better-sqlite3
 
-# Para projetos que usam sqlite3 assíncrono
+# For projects using async sqlite3
 npm install smart-cache-sqlite sqlite3
 ```
 
-## ⚡ Uso Básico
+## Basic Usage
 
 ```typescript
+import { SmartCache } from 'smart-cache-sqlite';
+import Database from 'better-sqlite3';
+
+// Create database connection
+const db = new Database('my_database.db');
+
+// Create smart cache
+const cache = new SmartCache(db, {
+  maxItems: 1000,           // Maximum items in cache
+  ttlMs: 5 * 60 * 1000,     // 5 minutes TTL
+  strategy: 'cache-first'   // Default strategy
+});
+
+// Use cache for queries - automatically detects database changes!
+const users = cache.query('SELECT * FROM users WHERE city = ?', ['Sao Paulo']);
+console.log(users.rows); // Data from cache or database
+console.log(users.fromCache); // true if served from cache
+```
 import { SmartCache } from 'smart-cache-sqlite';
 import Database from 'better-sqlite3';
 
@@ -68,58 +85,58 @@ console.log(usuarios.rows); // Dados do cache ou banco
 console.log(usuarios.fromCache); // true se veio do cache
 ```
 
-## 🎯 Estratégias de Cache
+## Cache Strategies
 
-### Cache-First (Padrão)
-Ideal para dados que não mudam frequentemente. Sempre tenta servir do cache primeiro.
+### Cache-First (Default)
+Ideal for data that doesn't change frequently. Always tries to serve from cache first.
 
 ```typescript
 const cache = new SmartCache(db, { strategy: 'cache-first' });
 ```
 
 ### Network-First
-Para dados críticos que precisam estar sempre atualizados. Sempre busca no banco primeiro.
+For critical data that needs to be always up-to-date. Always queries the database first.
 
 ```typescript
 const cache = new SmartCache(db, { strategy: 'network-first' });
 ```
 
 ### Stale-While-Revalidate
-Melhor experiência do usuário. Serve dados do cache imediatamente, mas revalida em background.
+Best user experience. Serves cached data immediately, but revalidates in background.
 
 ```typescript
 const cache = new SmartCache(db, { strategy: 'stale-while-revalidate' });
 ```
 
-## 🔄 Invalidação Automática
+## Automatic Invalidation
 
-O cache detecta mudanças automaticamente usando `PRAGMA data_version` do SQLite. Para invalidação ainda mais precisa, use triggers por tabela:
+The cache automatically detects database changes using SQLite's `PRAGMA data_version`. For even more precise invalidation, use table triggers:
 
 ```typescript
 import { ChangeTracker } from 'smart-cache-sqlite';
 
 const tracker = new ChangeTracker(db, () => cache.invalidateAll());
 
-// Instalar triggers para tabelas específicas
-await tracker.installTableTriggers('usuarios');
-await tracker.installTableTriggers('pedidos');
+// Install triggers for specific tables
+await tracker.installTableTriggers('users');
+await tracker.installTableTriggers('orders');
 ```
 
-## 📊 Monitoramento e Estatísticas
+## Monitoring and Statistics
 
 ```typescript
-// Obter estatísticas detalhadas
+// Get detailed statistics
 const stats = cache.stats();
 
-console.log('Taxa de acerto:', Math.round(stats.hitRate * 100) + '%');
-console.log('Total de consultas:', stats.totalQueries);
-console.log('Itens em cache:', stats.totalItems);
+console.log('Hit rate:', Math.round(stats.hitRate * 100) + '%');
+console.log('Total queries:', stats.totalQueries);
+console.log('Items in cache:', stats.totalItems);
 console.log('Hits/Misses:', stats.cacheHits, '/', stats.cacheMisses);
 ```
 
-## 📱 React Native / Expo
+## React Native / Expo
 
-Adapter pronto para React Native:
+Ready adapter for React Native:
 
 ```typescript
 import { SmartCache } from 'smart-cache-sqlite';
@@ -128,22 +145,22 @@ import { ReactNativeQuickAdapter } from 'smart-cache-sqlite/dist/adapters/ReactN
 const adapter = new ReactNativeQuickAdapter('app.db');
 const cache = new SmartCache(adapter, {
   maxItems: 500,
-  ttlMs: 10 * 60 * 1000,  // 10 minutos
+  ttlMs: 10 * 60 * 1000,  // 10 minutes
   strategy: 'cache-first'
 });
 ```
 
-**Demo Expo:** `examples/expo-smart-cache/`
+Expo demo: `examples/expo-smart-cache/`
 
-## 🧪 Benchmarks
+## Benchmarks
 
-Compare performance com e sem cache:
+Compare performance with and without cache:
 
 ```bash
 npm run bench
 ```
 
-Exemplo de resultado:
+Example result:
 ```
 {
   "runs": 5000,
@@ -153,82 +170,82 @@ Exemplo de resultado:
 }
 ```
 
-## 📚 Exemplos Avançados
+## Advanced Examples
 
-### Queries Complexas com JOIN
+### Complex Queries with JOIN
 ```typescript
-const pedidos = cache.query(`
-  SELECT p.*, c.nome as cliente_nome
-  FROM pedidos p
-  JOIN clientes c ON p.cliente_id = c.id
-  WHERE p.status = ?
-  ORDER BY p.data_pedido DESC
+const orders = cache.query(`
+  SELECT o.*, u.name as user_name
+  FROM orders o
+  JOIN users u ON o.user_id = u.id
+  WHERE o.status = ?
+  ORDER BY o.order_date DESC
   LIMIT ?
-`, ['pendente', 50]);
+`, ['pending', 50]);
 ```
 
-### Invalidação Manual
+### Manual Invalidation
 ```typescript
-// Limpar todo o cache
+// Clear entire cache
 cache.invalidateAll();
 
-// Limpar queries específicas (futuro)
-// cache.invalidatePattern('SELECT * FROM usuarios WHERE %');
+// Clear specific queries (future)
+// cache.invalidatePattern('SELECT * FROM users WHERE %');
 ```
 
-## 🔧 Configuração Completa
+## Complete Configuration
 
 ```typescript
 const cache = new SmartCache(db, {
   // Cache
-  maxItems: 1000,                    // Máximo de itens (LRU)
-  ttlMs: 5 * 60 * 1000,             // Tempo de vida (5 min)
+  maxItems: 1000,                    // Maximum items (LRU)
+  ttlMs: 5 * 60 * 1000,             // Time to live (5 min)
 
-  // Estratégia
+  // Strategy
   strategy: 'cache-first',           // cache-first | network-first | stale-while-revalidate
 
-  // Invalidação
-  enableTriggers: false,             // Usar triggers para invalidação fina
-  trackedTables: ['usuarios'],       // Tabelas para monitorar
+  // Invalidation
+  enableTriggers: false,             // Use table triggers for fine invalidation
+  trackedTables: ['users'],          // Tables to monitor
 
   // Debug
-  verbose: false                     // Log detalhado
+  verbose: false                     // Detailed logging
 });
 ```
 
-## 🤝 Contribuição
+## Contributing
 
-Contribuições são bem-vindas! Veja os [exemplos avançados](examples/advanced-swr/) e [testes](tests/) para entender melhor.
+Contributions are welcome! Check the advanced examples and tests for more details.
 
 ```bash
-# Desenvolvimento
+# Development
 npm install
 npm run dev
 
-# Testes
+# Tests
 npm test
 
 # Build
 npm run build
 ```
 
-## 📄 Licença
+## License
 
-[MIT](./LICENSE) - Feito com ❤️ por [Ranilson Nascimento](https://github.com/Ranilson-Nascimento)
+[MIT](./LICENSE) - Made with care by [Ranilson Nascimento](https://github.com/Ranilson-Nascimento)
 
 ---
 
-## 🇧🇷 PT-BR
+## PT-BR
 
-### Demonstração Interativa
-[![🎮 Demo](https://img.shields.io/badge/🎮%20Demo-abrir%20demo-4f46e5)](http://localhost:3000)
+### Interactive Demo
+[![Demo Online](https://img.shields.io/badge/Demo-Interativo-4f46e5)](https://ranilson-nascimento.github.io/smart-cache-sqlite/)
 
-### Instalação
+### Installation
 ```bash
 npm install smart-cache-sqlite better-sqlite3
 ```
 
-### Uso Básico
+### Basic Usage
 ```typescript
 import { SmartCache } from 'smart-cache-sqlite';
 import Database from 'better-sqlite3';
@@ -243,10 +260,51 @@ const cache = new SmartCache(db, {
 const usuarios = cache.query('SELECT * FROM usuarios WHERE cidade = ?', ['São Paulo']);
 ```
 
-### Estratégias
-- **Cache-First**: Para dados estáticos
-- **Network-First**: Para dados críticos
-- **Stale-While-Revalidate**: Melhor UX
+### Strategies
+- **Cache-First**: For static data
+- **Network-First**: For critical data
+- **Stale-While-Revalidate**: Best user experience
 
-### Apoie o Projeto
+### Automatic Invalidation
+
+The cache automatically detects database changes using SQLite's `PRAGMA data_version`. For even more precise invalidation, use table triggers:
+
+```typescript
+import { ChangeTracker } from 'smart-cache-sqlite';
+
+const tracker = new ChangeTracker(db, () => cache.invalidateAll());
+
+// Install triggers for specific tables
+await tracker.installTableTriggers('usuarios');
+await tracker.installTableTriggers('pedidos');
+```
+
+### Monitoring and Statistics
+
+```typescript
+// Get detailed statistics
+const stats = cache.stats();
+
+console.log('Hit rate:', Math.round(stats.hitRate * 100) + '%');
+console.log('Total queries:', stats.totalQueries);
+console.log('Items in cache:', stats.totalItems);
+```
+
+### React Native / Expo
+
+Ready adapter for React Native:
+
+```typescript
+import { SmartCache } from 'smart-cache-sqlite';
+import { ReactNativeQuickAdapter } from 'smart-cache-sqlite/dist/adapters/ReactNativeQuickAdapter.js';
+
+const adapter = new ReactNativeQuickAdapter('app.db');
+const cache = new SmartCache(adapter, {
+  maxItems: 500,
+  ttlMs: 10 * 60 * 1000,  // 10 minutes
+  strategy: 'cache-first'
+});
+```
+
+### Support the Project
 [![GitHub Sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#white)](https://github.com/sponsors/Ranilson-Nascimento)
