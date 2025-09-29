@@ -3,7 +3,6 @@
 [![npm version](https://img.shields.io/npm/v/smart-cache-sqlite.svg)](https://www.npmjs.com/package/smart-cache-sqlite)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://img.shields.io/github/actions/workflow/status/Ranilson-Nascimento/smart-cache-sqlite/ci.yml)](https://github.com/Ranilson-Nascimento/smart-cache-sqlite/actions)
-[![Coverage](./.github/badges/coverage.svg)](https://github.com/Ranilson-Nascimento/smart-cache-sqlite)
 
 > **EN** • [PT-BR](#pt-br)
 
