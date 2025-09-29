@@ -1,6 +1,6 @@
 {
   "name": "smart-cache-sqlite",
-  "version": "0.5.0",
+  "version": "0.2.0",
   "description": "Camada de cache inteligente para SQLite com TTL, LRU, invalidação por tabela, triggers e estratégias cache-first/network-first/stale-while-revalidate.",
   "keywords": [
     "sqlite",
