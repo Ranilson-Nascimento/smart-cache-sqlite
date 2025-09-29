@@ -2,7 +2,8 @@ import { SmartCache, BetterSqliteAdapter } from '../dist/index.js';
 import Database from 'better-sqlite3';
 import { performance } from 'node:perf_hooks';
 
-const N = Number(process.env.N||5000);
+// Use fewer runs in CI environment to avoid timeouts
+const N = process.env.CI ? 1000 : Number(process.env.N||5000);
 const dbFile = './bench.db';
 const db = new Database(dbFile);
 db.exec(`DROP TABLE IF EXISTS items; CREATE TABLE items(id INTEGER PRIMARY KEY, v TEXT);`);
