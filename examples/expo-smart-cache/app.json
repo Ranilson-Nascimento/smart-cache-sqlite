@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Expo SmartCache Demo",
+    "slug": "expo-smart-cache-demo",
+    "scheme": "smartcache",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "sdkVersion": "51.0.0",
+    "platforms": ["ios", "android"],
+    "ios": {"supportsTablet": true},
+    "android": {"adaptiveIcon": {"foregroundImage": "./assets/adaptive-icon.png","backgroundColor": "#FFFFFF"}},
+    "web": {"bundler": "metro"}
+  }
+}

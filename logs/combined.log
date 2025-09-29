@@ -1,0 +1,6 @@
+{"count":0,"dbId":"D:\\smart-cache-sqlite\\tests\\test-1759176829787.db","level":"warn","message":"All cache entries invalidated","service":"smart-cache-sqlite","timestamp":"2025-09-29T20:13:49.823Z"}
+{"count":1,"dbId":"D:\\smart-cache-sqlite\\tests\\test-1759176829787.db","level":"warn","message":"All cache entries invalidated","service":"smart-cache-sqlite","timestamp":"2025-09-29T20:13:49.840Z"}
+{"count":1,"dbId":"D:\\smart-cache-sqlite\\tests\\test-1759176829787.db","level":"warn","message":"All cache entries invalidated","service":"smart-cache-sqlite","timestamp":"2025-09-29T20:13:49.843Z"}
+{"count":0,"dbId":"D:\\smart-cache-sqlite\\tests\\test-1759178359273.db","level":"warn","message":"All cache entries invalidated","service":"smart-cache-sqlite","timestamp":"2025-09-29T20:39:19.311Z"}
+{"count":1,"dbId":"D:\\smart-cache-sqlite\\tests\\test-1759178359273.db","level":"warn","message":"All cache entries invalidated","service":"smart-cache-sqlite","timestamp":"2025-09-29T20:39:19.329Z"}
+{"count":1,"dbId":"D:\\smart-cache-sqlite\\tests\\test-1759178359273.db","level":"warn","message":"All cache entries invalidated","service":"smart-cache-sqlite","timestamp":"2025-09-29T20:39:19.331Z"}
