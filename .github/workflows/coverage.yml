@@ -20,14 +20,29 @@ jobs:
       - name: Generate coverage badge
         uses: emibcn/badge-action@v2
         with:
-          label: coverage
+          label: cobertura
           status: ${{ steps.cov.outputs.lines }}
           color: green
         id: badge
       - name: Extract coverage (lines %)
         id: cov
         run: |
-          PCT=$(cat ./coverage/coverage-summary.json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const j=JSON.parse(s);console.log(j.total.lines.pct.toFixed(0)+'%')});")
+          PCT=$(node -e "
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-final.json', 'utf8'));
+            let totalStatements = 0, coveredStatements = 0;
+            for (const file in coverage) {
+              const data = coverage[file];
+              totalStatements += data.b ? Object.keys(data.b).length : 0;
+              coveredStatements += data.b ? Object.values(data.b).filter(x => x > 0).length : 0;
+              totalStatements += data.f ? Object.keys(data.f).length : 0;
+              coveredStatements += data.f ? Object.values(data.f).filter(x => x > 0).length : 0;
+              totalStatements += data.s ? Object.keys(data.s).length : 0;
+              coveredStatements += data.s ? Object.values(data.s).filter(x => x > 0).length : 0;
+            }
+            const percentage = totalStatements > 0 ? Math.round((coveredStatements / totalStatements) * 100) : 0;
+            console.log(percentage + '%');
+          ")
           echo "lines=$PCT" >> $GITHUB_OUTPUT
       - name: Commit badge
         run: |
